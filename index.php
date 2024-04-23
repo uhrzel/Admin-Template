@@ -250,13 +250,10 @@
               <tbody id="courseTableBody">
                 <?php
                 include 'conn.php';
-                $sql = "SELECT * FROM 1st_year_1st_semester";
-
-                // Execute the query
-                $result = $conn->query($sql);
-
-                if ($result) {
-                  while ($row = $result->fetch_assoc()) {
+                $stmt = $conn->prepare("SELECT * FROM 1st_year_1st_semester");
+                $stmt->execute();
+                if ($stmt) {
+                  while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 ?>
                     <tr>
                       <td class="course-code"><?php echo $row['course_code']; ?></td>
@@ -264,12 +261,12 @@
                       <td class="grade"><?php echo $row['grade']; ?></td>
                       <td class="instructor"><?php echo $row['instructor']; ?></td>
                       <td>
-                        <button type="button" class="btn btn-primary btn-sm edit-btn" data-toggle="modal" data-target="#editCourseModal" data-id="<?php echo $row['id']; ?>" data-code="<?php echo $row['course_code']; ?>" data-name="<?php echo $row['course_name']; ?>" data-grade="<?php echo $row['grade']; ?>" data-instructor="<?php echo $row['instructor']; ?>">EDIT</button>
-                        <button type="button" class="btn btn-danger btn-sm delete-btn" data-toggle="modal" data-target="#deleteModal<?php echo $row['id']; ?>">DELETE</button>
+                        <button type="button" class="btn btn-primary btn-sm edit-btn" data-toggle="modal" data-target="#editCourseModal<?php echo $row['id']; ?>" data-id="<?php echo $row['id']; ?>" data-code="<?php echo $row['course_code']; ?>" data-name="<?php echo $row['course_name']; ?>" data-grade="<?php echo $row['grade']; ?>" data-instructor="<?php echo $row['instructor']; ?>">EDIT</button>
+                        <button type="button" class="btn btn-danger btn-sm delete-btn" data-toggle="modal" data-target="#deleteModal<?php echo $row['id']; ?>" data-id="<?php echo $row['id']; ?>">DELETE</button>
                       </td>
                     </tr>
 
-                    <div class="modal fade" id="editCourseModal" tabindex="-1" role="dialog" aria-labelledby="editCourseModalLabel" aria-hidden="true">
+                    <div class="modal fade" id="editCourseModal<?php echo $row['id']; ?>" tabindex=" -1" role="dialog" aria-labelledby="editCourseModalLabel" aria-hidden="true">
                       <div class="modal-dialog" role="document">
                         <div class="modal-content">
                           <div class="modal-header">
@@ -279,7 +276,7 @@
                             </button>
                           </div>
                           <div class="modal-body">
-                            <form id="editCourseForm" method="post" action="update_course.php">
+                            <form method="post" action="update_course.php">
                               <input type="hidden" id="editCourseId" name="course_id">
                               <div class="form-group">
                                 <label for="editCourseCode">Course Code:</label>
@@ -297,13 +294,12 @@
                                 <label for="editInstructor">Instructor:</label>
                                 <input type="text" class="form-control" id="editInstructor" name="instructor" value="<?php echo $row['instructor']; ?>">
                               </div>
-                              <button type="submit" class="btn btn-primary">Save Changes</button>
+                              <button type="submit" name="edit_btn" class="btn btn-primary">Save Changes</button>
                             </form>
                           </div>
                         </div>
                       </div>
                     </div>
-
                     <div class="modal fade" id="deleteModal<?php echo $row['id']; ?>" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
                       <div class="modal-dialog" role="document">
                         <div class="modal-content">
@@ -323,6 +319,7 @@
                         </div>
                       </div>
                     </div>
+
                 <?php
                   }
                 } else {
@@ -332,31 +329,42 @@
               </tbody>
             </table>
           </div>
-
-
+          <!-- Add this script in your HTML file -->
+          <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
           <script>
             $(document).ready(function() {
-              // Handle click event on edit button
-              $('.edit-btn').click(function() {
-                var courseId = $(this).data('id');
-                var courseCode = $(this).data('code');
-                var courseName = $(this).data('name');
-                var grade = $(this).data('grade');
-                var instructor = $(this).data('instructor');
+              // Handle confirmation modal
+              $('.delete-btn').click(function() {
+                var studentId = $(this).data('id'); // Retrieve data-id attribute
+                $('.confirm-delete').attr('data-student-id', studentId);
+              });
 
-                // Populate the modal fields with data
-                $('#editCourseId').val(courseId);
-                $('#editCourseCode').val(courseCode); // Populate course code input field
-                $('#editCourseName').val(courseName);
-                $('#editGrade').val(grade);
-                $('#editInstructor').val(instructor);
+              // Handle delete confirmation
+              $('.confirm-delete').click(function() {
+                var studentId = $(this).data('student-id');
+                $.ajax({
+                  url: 'delete_course.php',
+                  type: 'POST',
+                  data: {
+                    delete_btn: true,
+                    delete_id: studentId
+                  },
+                  success: function(response) {
+                    // Reload the page or update the table using JavaScript
+                    location.reload(); // Reloads the current page
+                  },
+                  error: function(error) {
+                    console.log('Error:', error);
+                    // Handle error as needed
+                  }
+                });
               });
             });
           </script>
           <?php
           // Close database connection
-          $conn->close();
+          $conn = null;
           ?>
           <div class="container-fluid">
             <div class="footer">
@@ -456,12 +464,6 @@
       });
     });
   </script>
-
-
-
-  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
   <!-- jQuery -->
   <script src="js/jquery.min.js"></script>

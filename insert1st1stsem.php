@@ -9,25 +9,32 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $grade = $_POST['grade'];
     $instructor = $_POST['instructor'];
 
-    // Prepare and bind SQL statement
-    $stmt = $conn->prepare("INSERT INTO 1st_year_1st_semester (course_code, course_name, grade, instructor) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("ssss", $course_code, $course_name, $grade, $instructor);
+    try {
+        // Prepare SQL statement
+        $stmt = $conn->prepare("INSERT INTO 1st_year_1st_semester (course_code, course_name, grade, instructor) VALUES (:course_code, :course_name, :grade, :instructor)");
 
-    // Execute the statement
-    if ($stmt->execute() === TRUE) {
-        // Close statement
-        $stmt->close();
+        // Bind parameters
+        $stmt->bindParam(':course_code', $course_code);
+        $stmt->bindParam(':course_name', $course_name);
+        $stmt->bindParam(':grade', $grade);
+        $stmt->bindParam(':instructor', $instructor);
 
-        // Return success response
-        echo json_encode(["success" => true]);
-        header('location: index.php');
-    } else {
+        // Execute the statement
+        if ($stmt->execute()) {
+            // Return success response
+            header('location: index.php');
+            exit;
+        } else {
+            // Error in execution
+            echo json_encode(["error" => "Error executing the statement"]);
+        }
+    } catch (PDOException $e) {
         // Error in execution
-        echo json_encode(["error" => "Error: " . $stmt->error]);
+        echo json_encode(["error" => "Error: " . $e->getMessage()]);
     }
 
     // Close connection
-    $conn->close();
+    $conn = null;
 } else {
     // Invalid request method
     echo json_encode(["error" => "Invalid request method"]);
