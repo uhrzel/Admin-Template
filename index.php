@@ -235,8 +235,6 @@
             </div>
           </div>
 
-
-
           <div class="container mt-4">
             <h2>Course List</h2>
             <table class="table table-striped">
@@ -249,7 +247,7 @@
                   <th><strong>Action</strong></th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="courseTableBody">
                 <?php
                 include 'conn.php';
                 $sql = "SELECT * FROM 1st_year_1st_semester";
@@ -261,10 +259,10 @@
                   while ($row = $result->fetch_assoc()) {
                 ?>
                     <tr>
-                      <td><?php echo $row['course_code']; ?></td>
-                      <td><?php echo $row['course_name']; ?></td>
-                      <td><?php echo $row['grade']; ?></td>
-                      <td><?php echo $row['instructor']; ?></td>
+                      <td class="course-code"><?php echo $row['course_code']; ?></td>
+                      <td class="course-name"><?php echo $row['course_name']; ?></td>
+                      <td class="grade"><?php echo $row['grade']; ?></td>
+                      <td class="instructor"><?php echo $row['instructor']; ?></td>
                       <td>
                         <button type="button" class="btn btn-primary btn-sm edit-btn" data-toggle="modal" data-target="#editCourseModal" data-id="<?php echo $row['id']; ?>" data-code="<?php echo $row['course_code']; ?>" data-name="<?php echo $row['course_name']; ?>" data-grade="<?php echo $row['grade']; ?>" data-instructor="<?php echo $row['instructor']; ?>">EDIT</button>
                         <button type="button" class="btn btn-danger btn-sm delete-btn" data-toggle="modal" data-target="#deleteModal<?php echo $row['id']; ?>">DELETE</button>
